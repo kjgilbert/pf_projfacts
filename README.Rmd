@@ -25,7 +25,7 @@ The goal of pf_app is to provide tools for working with ProjectFacts data and ea
 You can install `pf` with `remotes` via 
 
 ``` r
-remotes::install_github(""CTU-Bern/pf"")
+remotes::install_github("CTU-Bern/pf")
 ```
 
 Once it's installed, it can be updated via
