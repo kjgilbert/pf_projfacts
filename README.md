@@ -1,34 +1,23 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
 
 # pf
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of pf_app is to provide tools for working with ProjectFacts data and easy reporting of the data.
+The goal of pf_app is to provide tools for working with ProjectFacts
+data and easy reporting of the data.
 
 ## Installation
 
-You can install `pf` with `remotes` via 
+You can install `pf` with `remotes` via
 
 ``` r
 remotes::install_github("CTU-Bern/pf")
 ```
 
-Once it's installed, it can be updated via
+Once it’s installed, it can be updated via
 
 ``` r
 pf::update_pf()
@@ -36,13 +25,13 @@ pf::update_pf()
 
 ## Example
 
-```{r example}
+``` r
 library(pf)
 ```
 
 The following code is used to update the data on the R drive.
 
-```{r updateR, eval = FALSE}
+``` r
 # load the data from R
 all_tabs <- getPFData()
 # download data via ODBC
@@ -56,9 +45,9 @@ all_tabs$worker <- decodeCustomFields(all_tabs$worker, all_tabs$customfields)
 savePFdata(all_tabs)
 ```
 
-Regular usage would be e.g.: 
+Regular usage would be e.g.:
 
-```{r load, eval = FALSE}
+``` r
 # load the data from R
 all_tabs2 <- getPFData()
 
@@ -67,7 +56,7 @@ dat <- prepTime(all_tabs)
 
 Hours spent by DM for set up and STA for analysis:
 
-```{r dm_sta, eval = FALSE}
+``` r
 library(tidyverse)
 d <- dat %>% 
   dplyr::mutate(
@@ -97,7 +86,7 @@ d %>%
 
 #### CTU quarterly report
 
-```{r, eval = FALSE}
+``` r
 rmarkdown::render(input = "R:/Projectfacts/ODBC/pf_app/vignettes/quarterly.Rmd", 
                   output_file=file.path('R:/Projectfacts/ODBC/reports', 
                                         paste0("CTUQuarterly_",
@@ -109,7 +98,7 @@ rmarkdown::render(input = "R:/Projectfacts/ODBC/pf_app/vignettes/quarterly.Rmd",
 
 #### Email addresses of project contacts
 
-```{r, eval = FALSE}
+``` r
 library(tidyverse)
 View(all_tabs$project)
 View(all_tabs$contactfield)
@@ -131,5 +120,3 @@ tmp <- all_tabs$project %>%
 
 writexl::write_xlsx(tmp, "../reports/emailaddresses.xlsx")
 ```
-
-
