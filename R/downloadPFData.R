@@ -6,8 +6,7 @@
 #'
 #' @examples
 #' # downloadPFData()
-downloadPFData <- function(all = FALSE, ...){
-  con <- DBI::dbConnect(odbc::odbc(), "pf", catalog_name = "projectfacts")
+downloadPFData <- function(all = FALSE, con = DBI::dbConnect(odbc::odbc(), "pf", catalog_name = "projectfacts")){
   usefultabs <- c("activitycategory", 
                   "activitydata", 
                   "attendance_time", 
