@@ -123,7 +123,7 @@ projects_year <- tmp1_2%>%
                                             CustomerName == "Institut für Medizinische Lehre" ~ "UniBe Medical Faculty",
                                             top_CustomerName == "Universitäre Psychiatrische Dienste" ~ "UniBe Medical Faculty",
                                             # UNIBE other (all other institutes)
-                                            #top_CustomerName == "Universität Bern" ~ "UniBe Other",
+                                            top_CustomerName == "Universität Bern" ~ "UniBe Other",
                                             # external non-profit
                                             top_CustomerName == "External Non-Profit" ~ "External Non-Profit",
                                             Organization == "External non-profit" ~ "External Non-Profit",
