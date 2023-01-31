@@ -26,7 +26,7 @@ tmp1 <- pf::constructCustomerParents(all_tabs$customer) %>%
                                         dplyr::select(PK_PRICERECORD, NAME), 
                                       by=c("FK_DEFAULTPRICELIST"="PK_PRICERECORD")),
                    by="PK_CUSTOMER") %>% 
-  rename(Organization = NAME) %>%
+  dplyr::rename(Organization = NAME) %>%
   dplyr::left_join(all_tabs$project %>% 
               dplyr::select(PK_Project, FK_CUSTOMER, Path, CaseId, cf_applicable_ordinance_2, cf_study_category,
                      cf_snf, cf_eu, cf_charity_non_profit, cf_industry, cf_other_funding, cf_swiss_ctu, 
@@ -55,7 +55,6 @@ tmp2 <- pf::prepTime(all_tabs) %>%
   group_by(projnum) %>%
   summarise( total_time = sum(total_time, na.rm = TRUE),
              divisions = paste0(ctu_division, collapse = ",")) %>%
-  filter(total_time >= 8*60) %>%
   dplyr::mutate(Data.management = dplyr::case_when(
     stringr::str_detect(divisions, stringr::regex("DM", ignore_case = TRUE))  ~ "yes", 
     TRUE ~ "no") ) %>%
@@ -73,11 +72,14 @@ tmp2 <- pf::prepTime(all_tabs) %>%
     TRUE ~ "no") )
 
 ### merge the two dataframes 
-projects_year <- merge(tmp1, tmp2, by="projnum", all.x = FALSE) %>%
+tmp1_2 <- merge(tmp1, tmp2, by="projnum", all.x = FALSE) 
+
+### create variable centers, ordinance, customer, institution, cat for reports
+projects_year <- tmp1_2%>% 
   dplyr::mutate(Centers = dplyr::case_when(
     stringr::str_detect(cf_location, stringr::regex("International", ignore_case = TRUE)) ~ "multicenter (international)",
     stringr::str_detect(cf_setup_number_of_sites, stringr::regex("Single center", ignore_case = TRUE)) ~ "monocenter",
-    cf_location=="Swiss" & cf_setup_number_of_sites=="Multicenter" ~ "multicenter (national only)" ) ) %>%
+    cf_location=="Swiss" & cf_setup_number_of_sites=="Multicenter" ~ "multicenter (national only)" ) ) %>% 
   dplyr::mutate(Ordinance_scto = dplyr::case_when(
     stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("IMP", ignore_case = TRUE)) ~ "ClinO_IMP",
     stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Medical Device", ignore_case = TRUE)) ~ "ClinO_MD",
@@ -85,34 +87,63 @@ projects_year <- merge(tmp1, tmp2, by="projnum", all.x = FALSE) %>%
     stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Further", ignore_case = TRUE)) ~ "HRO_FurtherUse",
     stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Observational", ignore_case = TRUE)) ~ "HRO_sampleDataCollection",
     stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("HRA", ignore_case = TRUE)) ~ "Non-HRA",
-  )) %>%
+  ))  %>% 
   dplyr::mutate(dplyr::across(c(cf_snf,cf_eu,cf_charity_non_profit, cf_industry, cf_other_funding, cf_swiss_ctu, cf_other_ctu_cro), 
                 tolower) ) %>%
-  dplyr::mutate(Institution = dplyr::case_when(
-    stringr::str_detect(top_CustomerName, stringr::regex("Insel|Universität Bern", ignore_case = TRUE)) ~ CustomerName,
-    stringr::str_detect(Organization, stringr::regex("External", ignore_case = TRUE)) ~ Organization,
-    stringr::str_detect(CustomerName, stringr::regex("Campus SLB|Winterthur Institute|Basel Institute for Clinical|GWT-TUD GmbH", ignore_case = TRUE)) ~ "External non-profit",
-    stringr::str_detect(CustomerName, stringr::regex("Universitäre Psychiatrische Dienste|Department for BioMedical ", ignore_case = TRUE)) ~ CustomerName,
-    stringr::str_detect(CustomerName, stringr::regex("External For-Profit|InnoMedica", ignore_case = TRUE)) ~ "External for-profit",
-  )) %>%
   dplyr::filter(projnum != 9999) %>%
-  dplyr::mutate(dplyr::across(c(Centers, Institution, Ordinance_scto), 
+  dplyr::mutate(dplyr::across(c(Centers, Ordinance_scto), 
                 as.factor)) %>%
   dplyr::mutate(Centers = factor(Centers, 
-                          levels(Centers)[c(1,3,2)])) %>%
-  dplyr::mutate(Inseluni = dplyr::case_when(
-    stringr::str_detect(Institution, stringr::regex("Universitätsklinik für|Insel|Palliative", ignore_case = TRUE)) ~ 1, 
-    stringr::str_detect(Institution, stringr::regex("for-profit", ignore_case = TRUE)) ~ 4,
-    stringr::str_detect(Institution, stringr::regex("non-profit", ignore_case = TRUE)) ~ 3,
-    TRUE ~ 2) ) %>%
-  dplyr::mutate(Institution = stringr::str_remove(Institution,"Universitätsklinik für ")) %>%
-  dplyr::mutate(Institution = fct_reorder(Institution, Inseluni)) %>%
-  dplyr::mutate(Uni.med.oth = dplyr::case_when(
-    stringr::str_detect(Institution, stringr::regex("Institut für Psychologie", ignore_case = TRUE)) ~ 'other',
-    stringr::str_detect(Inseluni, stringr::regex("2", ignore_case = TRUE)) ~ 'medizin',
-    
-  ))
-  
+                          levels(Centers)[c(1,3,2)]))  %>% 
+  dplyr::mutate(Customer = dplyr::case_when(top_CustomerName == "Insel Gruppe AG" ~ "Insel",
+                                            # medical faculty 
+                                            # retrieved from https://www.medizin.unibe.ch/ueber_uns/fakultaet/index_ger.html 2023-01-27
+                                            # names compared with projectfacts
+                                            CustomerName == "Dekanat Medizinische Fakultät"  ~ "UniBe Medical Faculty",
+                                            CustomerName == "Forensisch-Psychiatrischer Dienst (FPD)" ~"UniBe Medical Faculty",
+                                            CustomerName == "Institut für Infektionskrankheiten" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Pathologie" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Rechtsmedizin" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Anatomie" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Biochemie und Molekulare Medizin" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institute of Biochemistry  and Molecular Medicine" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Medizingeschichte" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Pharmakologie" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Physiologie" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institute of Social and Preventive Medicine (ISPM)" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Theodor Kocher Institut (TKI)" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Department for BioMedical Research" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Zahnmedizinische Kliniken" ~ "UniBe Medical Faculty",
+                                            CustomerName == "ARTORG Center for Biomedical Engineering Research" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Bern Center for Precision Medicine (BCPM)" ~ "UniBe Medical Faculty", # not yet in PF
+                                            CustomerName == "sitem Center for Translational Medicine and Biomedical Entrepreneurship" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Zentrum für Künstliche Intelligenz in der Medizin" ~ "UniBe Medical Faculty", # not yet in PF
+                                            CustomerName == "Berner Institut für Hausarztmedizin (BIHAM)" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Komplementäre und Integrative Medizin" ~ "UniBe Medical Faculty",
+                                            CustomerName == "Institut für Medizinische Lehre" ~ "UniBe Medical Faculty",
+                                            top_CustomerName == "Universitäre Psychiatrische Dienste" ~ "UniBe Medical Faculty",
+                                            # UNIBE other (all other institutes)
+                                            #top_CustomerName == "Universität Bern" ~ "UniBe Other",
+                                            # external non-profit
+                                            top_CustomerName == "External Non-Profit" ~ "External Non-Profit",
+                                            Organization == "External non-profit" ~ "External Non-Profit",
+                                            top_CustomerName == "Lindenhofgruppe" ~ "External Non-Profit",
+                                            # external for-profit
+                                            top_CustomerName == "External For-Profit" ~ "External For-Profit",
+                                            Organization == "External for-profit" ~ "External For-Profit"),
+                Institution = dplyr::case_when(Customer == "Insel" ~ CustomerName,
+                                               Customer == "UniBe Medical Faculty" ~ CustomerName,
+                                               Customer == "UniBe Other" ~ CustomerName,
+                                               Customer == "External Non-Profit" ~ Customer,
+                                               Customer == "External For-Profit" ~ Customer),
+                Institution = stringr::str_remove(Institution,"Universitätsklinik für "),
+                Category = dplyr::case_when(Customer == "Insel" ~ "Insel",
+                                            Customer == "UniBe Medical Faculty" ~ "UniBe",
+                                            Customer == "UniBe Other" ~ "UniBe",
+                                            Customer == "External For-Profit" ~ "External For-Profit",
+                                            Customer == "External Non-Profit" ~ "External Non-Profit")
+  ) 
+
 return(projects_year)
 }
 
