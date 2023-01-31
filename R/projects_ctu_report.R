@@ -45,15 +45,15 @@ tmp1 <- pf::constructCustomerParents(all_tabs$customer) %>%
   dplyr::relocate(projnum, Project.name, .before = top_CustomerName)
 
 ### Select projects and FTE necessary. 
-tmp2 <- pf::prepTime(all_tabs) %>%
+tmp2 <- pf::prepTime(all_tabs) %>% 
   filter(lubridate::year(BookedDate) == selected_year) %>%
   dplyr::filter(grepl("P-|FTE", proj)) %>%
-  select(BookedDate, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype) %>%
-  group_by(projnum, ctu_division) %>% 
-  summarise(total_time = sum(Timespent, na.rm = TRUE),
+  dplyr::select(BookedDate, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype) %>%
+  dplyr::group_by(projnum, ctu_division) %>% 
+  dplyr::summarise(total_time = sum(Timespent, na.rm = TRUE),
   ProjectName = first(ctu_projectName)) %>%
-  group_by(projnum) %>%
-  summarise( total_time = sum(total_time, na.rm = TRUE),
+  dplyr::group_by(projnum) %>%
+  dplyr::summarise( total_time = sum(total_time, na.rm = TRUE),
              divisions = paste0(ctu_division, collapse = ",")) %>%
   dplyr::mutate(Data.management = dplyr::case_when(
     stringr::str_detect(divisions, stringr::regex("DM", ignore_case = TRUE))  ~ "yes", 
@@ -75,7 +75,8 @@ tmp2 <- pf::prepTime(all_tabs) %>%
 tmp1_2 <- merge(tmp1, tmp2, by="projnum", all.x = FALSE) 
 
 ### create variable centers, ordinance, customer, institution, cat for reports
-projects_year <- tmp1_2%>% 
+projects_year <- tmp1_2 %>%
+  dplyr::mutate(year = selected_year) %>% 
   dplyr::mutate(Centers = dplyr::case_when(
     stringr::str_detect(cf_location, stringr::regex("International", ignore_case = TRUE)) ~ "multicenter (international)",
     stringr::str_detect(cf_setup_number_of_sites, stringr::regex("Single center", ignore_case = TRUE)) ~ "monocenter",
