@@ -1,24 +1,25 @@
-#' function to get the projects in a specific year
+#' Function to get the booked hours for projects in total and in each year
 #' 
-#' This code has been adapted for the purpose of producing the graphs for the CTU Yearly report
+#' This code has been adapted for the purpose of producing the graphs for the QMR Yearly Report and CTU Annual Report. 
+#' The code gets (among others) customer info (top_CustomerName, CustomerName, CustomerName2, Organization), default project of customer,
+#' center info (mono/multi), ordinance info, archiving date of the project, runs prepTime to get total time bookings and time bookings for each year, 
+#' categorizes sum of time bookings (< 8h, 9-20h,...).
 #' 
 #' @param all_tabs result from e.g. getPFData
-#' @param selected_year year for which projects should be summarized
 #' 
-#' @return projects_year
+#' @return projects
 #' @export
 #' 
 #' @examples 
 #' all_tabs <-  getPFData()
-#' x <- projects_ctu_report(all_tabs,selected_year)
+#' x <- projects_ctu_report(all_tabs)
 
 
 
-projects_ctu_report <- function(all_tabs,selected_year){
+projects_ctu_report <- function(all_tabs){
 
 
-# TABLES ----
-### Needed tables with information for the CTU Report: activitydata, project, customer 
+# get customer info
 tmp1 <- pf::constructCustomerParents(all_tabs$customer) %>% 
   dplyr::left_join(all_tabs$customer %>% 
                      dplyr::select(PK_CUSTOMER, FK_DEFAULTPRICELIST) %>%
@@ -26,125 +27,127 @@ tmp1 <- pf::constructCustomerParents(all_tabs$customer) %>%
                                         dplyr::select(PK_PRICERECORD, NAME), 
                                       by=c("FK_DEFAULTPRICELIST"="PK_PRICERECORD")),
                    by="PK_CUSTOMER") %>% 
-  dplyr::rename(Organization = NAME) %>%
+  dplyr::rename(Organization = NAME) %>% 
+  # get default project (for for/non profit)
+  dplyr::left_join(all_tabs$customer %>% 
+                     dplyr::select(PK_CUSTOMER,FK_DEFAULTPROJECT) %>% 
+                     dplyr::left_join(all_tabs$project %>% 
+                                        dplyr::select(PK_Project,Name),
+                                      by=c("FK_DEFAULTPROJECT"="PK_Project")),
+                   by="PK_CUSTOMER") %>% 
+  dplyr::rename(default_projname = Name) %>% 
+  # get project info
   dplyr::left_join(all_tabs$project %>% 
               dplyr::select(PK_Project, FK_CUSTOMER, Path, CaseId, cf_applicable_ordinance_2, cf_study_category,
                      cf_snf, cf_eu, cf_charity_non_profit, cf_industry, cf_other_funding, cf_swiss_ctu, 
-                     cf_other_ctu_cro, cf_location, cf_setup_number_of_sites), 
-            by=c("PK_CUSTOMER"="FK_CUSTOMER")) %>%
-  dplyr::filter(grepl("P-|FTE", CaseId)) %>%
-  dplyr::select(top_CustomerName, CustomerName, Organization, Path, CaseId, cf_applicable_ordinance_2, cf_study_category,
+                     cf_other_ctu_cro, cf_location, cf_setup_number_of_sites,CreateDate), 
+            by=c("PK_CUSTOMER"="FK_CUSTOMER"))  %>% 
+  # get archiving date
+  dplyr::left_join(all_tabs$projectactivity %>% 
+                     dplyr::select("FK_PROJECT","FK_PROJECTSTATEDEFINITION","ClosedDate") %>% 
+                     dplyr::left_join(all_tabs$projectstatedefinition %>% 
+                                        dplyr::select("PK_PROJECTSTATEDEFINITION","NAME"),
+                                      by = c("FK_PROJECTSTATEDEFINITION" = "PK_PROJECTSTATEDEFINITION")
+                                      ) %>% 
+                     dplyr::filter(NAME == "Study: Archived"),
+                   by=(c("PK_Project" = "FK_PROJECT")))  %>%
+  # clean up
+  dplyr::filter(grepl("P-|FTE", CaseId)) %>% 
+  dplyr::select(top_CustomerName, CustomerName, CustomerName2, Organization, default_projname, Path, CaseId, cf_applicable_ordinance_2, cf_study_category,
                 cf_snf, cf_eu, cf_charity_non_profit, cf_industry, cf_other_funding, cf_swiss_ctu, 
-                cf_other_ctu_cro, cf_location, cf_setup_number_of_sites) %>%
+                cf_other_ctu_cro, cf_location, cf_setup_number_of_sites,CreateDate,ArchivingDate=ClosedDate) %>% 
   dplyr::mutate(projnum = readr::parse_number(gsub('[-]', ' ', CaseId))) %>%
   dplyr::arrange(projnum) %>%
   dplyr::distinct(projnum, Path, .keep_all=TRUE) %>%
   dplyr::mutate(across(projnum, as.character)) %>%
   dplyr::mutate(projnum = stringr::str_pad(projnum, 4, pad = "0")) %>%
   dplyr::rename(Project.name = Path) %>%
-  dplyr::relocate(projnum, Project.name, .before = top_CustomerName)
+  dplyr::relocate(projnum, Project.name, .before = top_CustomerName) 
+  
 
-### Select projects and FTE necessary. 
-tmp2 <- pf::prepTime(all_tabs) %>% 
-  filter(lubridate::year(BookedDate) == selected_year) %>%
-  dplyr::filter(grepl("P-|FTE", proj)) %>%
-  dplyr::select(BookedDate, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype) %>%
+### Select projects and sum up booked time overall
+tmp2 <- pf::prepTime(all_tabs)   %>% 
+  dplyr::mutate(BookedYear = lubridate::year(BookedDate)) %>% 
+  dplyr::filter(grepl("P-|FTE", proj)) %>% 
+  dplyr::select(BookedDate, BookedYear, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype ) %>% 
+  # make sure all projectnbrs have 4 digits:
+  dplyr::mutate(projnum = formatC(as.integer(projnum),width = 4, format = "d", flag = "0")) %>% 
   dplyr::group_by(projnum, ctu_division) %>% 
   dplyr::summarise(total_time = sum(Timespent, na.rm = TRUE),
-  ProjectName = first(ctu_projectName)) %>%
+                   ProjectName = first(ctu_projectName)) %>% 
   dplyr::group_by(projnum) %>%
-  dplyr::summarise( total_time = sum(total_time, na.rm = TRUE),
-             divisions = paste0(ctu_division, collapse = ",")) %>%
-  dplyr::mutate(Data.management = dplyr::case_when(
-    stringr::str_detect(divisions, stringr::regex("DM", ignore_case = TRUE))  ~ "yes", 
-    TRUE ~ "no") ) %>%
-  dplyr::mutate(Project.management = dplyr::case_when(
-    stringr::str_detect(divisions, stringr::regex("CSM|QM", ignore_case = TRUE))  ~ "yes", 
-    TRUE ~ "no") ) %>%
-  dplyr::mutate(Monitoring = dplyr::case_when(
-    stringr::str_detect(divisions, stringr::regex("MON", ignore_case = TRUE))  ~ "yes",
-    TRUE ~ "no") ) %>%
-  dplyr::mutate(Statistics = dplyr::case_when(
-    stringr::str_detect(divisions, stringr::regex("STA", ignore_case = TRUE))  ~ "yes",
-    TRUE ~ "no") ) %>%
-  dplyr::mutate(Clinical.investigation = dplyr::case_when(
-    stringr::str_detect(divisions, stringr::regex("CI", ignore_case = TRUE))  ~ "yes",
-    TRUE ~ "no") )
+  dplyr::summarise(total_divisions = paste0(ctu_division, collapse = ","),
+                   total_time = sum(total_time, na.rm = TRUE)) %>% 
+  dplyr::mutate(total_hrs = total_time/60) %>% 
+  dplyr::mutate(total_hrs_cat = dplyr::case_when(total_hrs < 8 ~ "< 8h",
+                                                 total_hrs >= 8   & total_hrs <= 20 ~ "8-20h",
+                                                 total_hrs > 20  & total_hrs <= 40 ~ "21-40h",
+                                                 total_hrs > 40  & total_hrs <= 60 ~ "41-60h",
+                                                 total_hrs > 60  & total_hrs <= 100 ~ "61-100h",
+                                                 total_hrs > 100 & total_hrs <= 500 ~ "101-500h",
+                                                 total_hrs > 500 ~ "> 500h"),
+                total_hrs_cat = as.factor(total_hrs_cat),
+                total_hrs_cat = factor(total_hrs_cat,levels(total_hrs_cat)[c(1,7,4:6,3,2)])
+  )
 
-### merge the two dataframes 
-tmp1_2 <- merge(tmp1, tmp2, by="projnum", all.x = FALSE) 
 
-### create variable centers, ordinance, customer, institution, cat for reports
-projects_year <- tmp1_2 %>%
-  dplyr::mutate(year = selected_year) %>% 
+# Select projects and sum up booked times per year
+tmp3 <- pf::prepTime(all_tabs) %>% 
+  dplyr::mutate(BookedYear = lubridate::year(BookedDate)) %>% 
+  dplyr::filter(grepl("P-|FTE", proj)) %>% 
+  dplyr::select(BookedDate, BookedYear, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype ) %>% 
+  # make sure all projectnbrs have 4 digits:
+  dplyr::mutate(projnum = formatC(as.integer(projnum),width = 4, format = "d", flag = "0")) %>% 
+  dplyr::group_by(projnum, ctu_division,BookedYear) %>%
+  dplyr::summarise(time_per_year = sum(Timespent, na.rm = TRUE),
+                 ProjectName = first(ctu_projectName)) %>% 
+  dplyr::group_by(projnum,BookedYear) %>%
+  dplyr::summarise(divisions_per_year = paste0(ctu_division, collapse = ","),
+                   time_per_year = sum(time_per_year, na.rm = TRUE)) %>% 
+  dplyr::mutate(hrs_per_year = time_per_year/60) %>% 
+  dplyr::mutate(hrs_per_year_cat = dplyr::case_when(hrs_per_year < 8 ~ "< 8h",
+                                                    hrs_per_year >= 8   & hrs_per_year <= 20 ~ "8-20h",
+                                                    hrs_per_year > 20  & hrs_per_year <= 40 ~ "21-40h",
+                                                    hrs_per_year > 40  & hrs_per_year <= 60 ~ "41-60h",
+                                                    hrs_per_year > 60  & hrs_per_year <= 100 ~ "61-100h",
+                                                    hrs_per_year > 100 & hrs_per_year <= 500 ~ "101-500h",
+                                                    hrs_per_year > 500 ~ "> 500h"),
+                hrs_per_year_cat = as.factor(hrs_per_year_cat),
+                hrs_per_year_cat = factor(hrs_per_year_cat,levels(hrs_per_year_cat)[c(4:7,3,2,1)])
+  )
+
+### join dataframes, create variable centers, ordinance, customer, institution, cat for reports
+
+projects <- tmp1 %>%
+  dplyr::left_join(tmp2,by="projnum")  %>% 
+  dplyr::right_join(tmp3,by= "projnum",multiple = "all") %>% 
+  dplyr::filter(projnum != 9999) %>%
+  # get center info
   dplyr::mutate(Centers = dplyr::case_when(
     stringr::str_detect(cf_location, stringr::regex("International", ignore_case = TRUE)) ~ "multicenter (international)",
     stringr::str_detect(cf_setup_number_of_sites, stringr::regex("Single center", ignore_case = TRUE)) ~ "monocenter",
     cf_location=="Swiss" & cf_setup_number_of_sites=="Multicenter" ~ "multicenter (national only)" ) ) %>% 
-  dplyr::mutate(Ordinance_scto = dplyr::case_when(
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("IMP", ignore_case = TRUE)) ~ "ClinO_IMP",
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Medical Device", ignore_case = TRUE)) ~ "ClinO_MD",
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Other health", ignore_case = TRUE)) ~ "ClinO_Other",
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Further", ignore_case = TRUE)) ~ "HRO_FurtherUse",
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Observational", ignore_case = TRUE)) ~ "HRO_sampleDataCollection",
-    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("HRA", ignore_case = TRUE)) ~ "Non-HRA",
-  ))  %>% 
-  dplyr::mutate(dplyr::across(c(cf_snf,cf_eu,cf_charity_non_profit, cf_industry, cf_other_funding, cf_swiss_ctu, cf_other_ctu_cro), 
-                tolower) ) %>%
-  dplyr::filter(projnum != 9999) %>%
-  dplyr::mutate(dplyr::across(c(Centers, Ordinance_scto), 
-                as.factor)) %>%
-  dplyr::mutate(Centers = factor(Centers, 
-                          levels(Centers)[c(1,3,2)]))  %>% 
-  dplyr::mutate(Customer = dplyr::case_when(top_CustomerName == "Insel Gruppe AG" ~ "Insel",
-                                            # medical faculty 
-                                            # retrieved from https://www.medizin.unibe.ch/ueber_uns/fakultaet/index_ger.html 2023-01-27
-                                            # names compared with projectfacts
-                                            CustomerName == "Dekanat Medizinische Fakultät"  ~ "UniBe Medical Faculty",
-                                            CustomerName == "Forensisch-Psychiatrischer Dienst (FPD)" ~"UniBe Medical Faculty",
-                                            CustomerName == "Institut für Infektionskrankheiten" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Pathologie" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Rechtsmedizin" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Anatomie" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Biochemie und Molekulare Medizin" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institute of Biochemistry  and Molecular Medicine" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Medizingeschichte" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Pharmakologie" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Physiologie" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institute of Social and Preventive Medicine (ISPM)" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Theodor Kocher Institut (TKI)" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Department for BioMedical Research" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Zahnmedizinische Kliniken" ~ "UniBe Medical Faculty",
-                                            CustomerName == "ARTORG Center for Biomedical Engineering Research" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Bern Center for Precision Medicine (BCPM)" ~ "UniBe Medical Faculty", # not yet in PF
-                                            CustomerName == "sitem Center for Translational Medicine and Biomedical Entrepreneurship" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Zentrum für Künstliche Intelligenz in der Medizin" ~ "UniBe Medical Faculty", # not yet in PF
-                                            CustomerName == "Berner Institut für Hausarztmedizin (BIHAM)" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Komplementäre und Integrative Medizin" ~ "UniBe Medical Faculty",
-                                            CustomerName == "Institut für Medizinische Lehre" ~ "UniBe Medical Faculty",
-                                            top_CustomerName == "Universitäre Psychiatrische Dienste" ~ "UniBe Medical Faculty",
-                                            # UNIBE other (all other institutes)
-                                            top_CustomerName == "Universität Bern" ~ "UniBe Other",
-                                            # external non-profit
-                                            top_CustomerName == "External Non-Profit" ~ "External Non-Profit",
-                                            Organization == "External non-profit" ~ "External Non-Profit",
-                                            top_CustomerName == "Lindenhofgruppe" ~ "External Non-Profit",
-                                            # external for-profit
-                                            top_CustomerName == "External For-Profit" ~ "External For-Profit",
-                                            Organization == "External for-profit" ~ "External For-Profit"),
-                Institution = dplyr::case_when(Customer == "Insel" ~ CustomerName,
-                                               Customer == "UniBe Medical Faculty" ~ CustomerName,
-                                               Customer == "UniBe Other" ~ CustomerName,
-                                               Customer == "External Non-Profit" ~ Customer,
-                                               Customer == "External For-Profit" ~ Customer),
-                Institution = stringr::str_remove(Institution,"Universitätsklinik für "),
-                Category = dplyr::case_when(Customer == "Insel" ~ "Insel",
-                                            Customer == "UniBe Medical Faculty" ~ "UniBe",
-                                            Customer == "UniBe Other" ~ "UniBe",
-                                            Customer == "External For-Profit" ~ "External For-Profit",
-                                            Customer == "External Non-Profit" ~ "External Non-Profit")
-  ) 
+  # get ordinance info
+  dplyr::mutate(
+    Ordinance = dplyr::case_when(
+      stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("ClinO", ignore_case = TRUE)) ~ "ClinO",    
+      stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("HRO", ignore_case = TRUE)) ~ "HRO",
+      stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("HRA", ignore_case = TRUE)) ~ "Non-HRA"),
+    Ordinance_sub = dplyr::case_when(
+    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("IMP", ignore_case = TRUE)) ~ "IMP",
+    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Medical Device", ignore_case = TRUE)) ~ "MD",
+    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Other health", ignore_case = TRUE)) ~ "Other",
+    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Further", ignore_case = TRUE)) ~ "Further Use",
+    stringr::str_detect(cf_applicable_ordinance_2, stringr::regex("Observational", ignore_case = TRUE)) ~ "Sample Data Collection")
+    ) %>% 
+  dplyr::select(projnum:default_projname,
+                Centers:Ordinance_sub,
+                CreateDate:hrs_per_year_cat) %>% 
+  dplyr::mutate(dplyr::across(c(Centers, Ordinance, Ordinance_sub), 
+                              as.factor),
+                Centers = factor(Centers, 
+                                 levels(Centers)[c(1,3,2)])) 
 
-return(projects_year)
+return(projects)
 }
 
