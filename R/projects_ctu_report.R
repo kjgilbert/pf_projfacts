@@ -74,21 +74,16 @@ tmp2 <- pf::prepTime(all_tabs)   %>%
   dplyr::mutate(projnum = formatC(as.integer(projnum),width = 4, format = "d", flag = "0")) %>% 
   dplyr::group_by(projnum, ctu_division) %>% 
   dplyr::summarise(total_time = sum(Timespent, na.rm = TRUE),
-                   ProjectName = first(ctu_projectName)) %>% 
+                   ProjectName = dplyr::first(ctu_projectName)) %>% 
   dplyr::group_by(projnum) %>%
   dplyr::summarise(total_divisions = paste0(ctu_division, collapse = ","),
                    total_time = sum(total_time, na.rm = TRUE)) %>% 
   dplyr::mutate(total_hrs = total_time/60) %>% 
-  dplyr::mutate(total_hrs_cat = dplyr::case_when(total_hrs < 8 ~ "< 8h",
-                                                 total_hrs >= 8   & total_hrs <= 20 ~ "8-20h",
-                                                 total_hrs > 20  & total_hrs <= 40 ~ "21-40h",
-                                                 total_hrs > 40  & total_hrs <= 60 ~ "41-60h",
-                                                 total_hrs > 60  & total_hrs <= 100 ~ "61-100h",
-                                                 total_hrs > 100 & total_hrs <= 500 ~ "101-500h",
-                                                 total_hrs > 500 ~ "> 500h"),
-                total_hrs_cat = as.factor(total_hrs_cat),
-                total_hrs_cat = factor(total_hrs_cat,levels(total_hrs_cat)[c(1,7,4:6,3,2)])
-  )
+  dplyr::mutate(total_hrs_cat = cut(total_hrs, 
+                                    breaks = c(0,7.9999,20.49,40.49,60.49,100.49,500.49,Inf),
+                                    labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h")
+                                    )
+                )
 
 
 # Select projects and sum up booked times per year
@@ -100,21 +95,16 @@ tmp3 <- pf::prepTime(all_tabs) %>%
   dplyr::mutate(projnum = formatC(as.integer(projnum),width = 4, format = "d", flag = "0")) %>% 
   dplyr::group_by(projnum, ctu_division,BookedYear) %>%
   dplyr::summarise(time_per_year = sum(Timespent, na.rm = TRUE),
-                 ProjectName = first(ctu_projectName)) %>% 
+                 ProjectName = dplyr::first(ctu_projectName)) %>% 
   dplyr::group_by(projnum,BookedYear) %>%
   dplyr::summarise(divisions_per_year = paste0(ctu_division, collapse = ","),
                    time_per_year = sum(time_per_year, na.rm = TRUE)) %>% 
   dplyr::mutate(hrs_per_year = time_per_year/60) %>% 
-  dplyr::mutate(hrs_per_year_cat = dplyr::case_when(hrs_per_year < 8 ~ "< 8h",
-                                                    hrs_per_year >= 8   & hrs_per_year <= 20 ~ "8-20h",
-                                                    hrs_per_year > 20  & hrs_per_year <= 40 ~ "21-40h",
-                                                    hrs_per_year > 40  & hrs_per_year <= 60 ~ "41-60h",
-                                                    hrs_per_year > 60  & hrs_per_year <= 100 ~ "61-100h",
-                                                    hrs_per_year > 100 & hrs_per_year <= 500 ~ "101-500h",
-                                                    hrs_per_year > 500 ~ "> 500h"),
-                hrs_per_year_cat = as.factor(hrs_per_year_cat),
-                hrs_per_year_cat = factor(hrs_per_year_cat,levels(hrs_per_year_cat)[c(4:7,3,2,1)])
-  )
+  dplyr::mutate(hrs_per_year_cat = cut(hrs_per_year, 
+                                       breaks = c(0,7.9999,20.49,40.49,60.49,100.49,500.49,Inf),
+                                       labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h")
+                                       )
+                )
 
 ### join dataframes, create variable centers, ordinance, customer, institution, cat for reports
 
