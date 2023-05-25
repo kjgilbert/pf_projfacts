@@ -62,7 +62,7 @@ Regular usage would be e.g.:
 # load the data from R
 all_tabs2 <- getPFData()
 
-dat <- prepTime(all_tabs)
+dat <- prepTime(all_tabs2)
 ```
 
 Hours spent by DM for set up and STA for analysis:
@@ -73,7 +73,7 @@ d <- dat %>%
   dplyr::mutate(
     tokeep = stringr::str_detect(.$finart_Name, "Database [Ss]et-up|Data [Aa]nalysis|Statist") |
       stringr::str_detect(.$finart_Name1, "Stat")) %>% 
-  dplyr::select(ctu_projectName, starts_with("finart"), starts_with("ProjectName"), tokeep) |> View()
+  dplyr::select(ctu_projectName, starts_with("finart"), starts_with("ProjectName"), tokeep) |> #View()
   dplyr::filter(tokeep) %>% 
   dplyr::mutate(div = stringr::word(finart_Name, end = 2),
                 div = stringr::str_to_sentence(div), 
@@ -92,6 +92,39 @@ d %>%
   geom_histogram() +
   facet_wrap(~div)
 ```
+
+#### Monthly billable time at CTU and division level
+
+```{r}
+library(lubridate)
+monthly_billable_div <- dat |> 
+  mutate(month = month(BookedDate)) |> 
+  group_by(ctu_division, year, month) |> 
+  filter(billable == "Billable") |> 
+  summarize(Timespent_billable = sum(Timespent_billable)) |> #View()
+  mutate(year_month = ym(paste0(year, "-", month)), 
+         hours = Timespent_billable/60) |> 
+  filter(year > 2020) 
+
+monthly_billable_ctu <- monthly_billable |> 
+  group_by(year, month) |> 
+  summarize(Timespent_billable = sum(Timespent_billable)) |> #View()
+  mutate(year_month = ym(paste0(year, "-", month)), 
+         hours = Timespent_billable/60)
+
+ggplot(monthly_billable_div, 
+       aes(x = year_month, 
+          y = hours, 
+          col = ctu_division)) +
+  geom_line() +
+  labs(x = "Month", 
+       y = "Billable hours", 
+       col = "Division")
+
+writexl::write_xlsx(list(divisions = monthly_billable_div, ctu = monthly_billable_ctu), paste0("Monthly_billable_", Sys.Date(), ".xlsx"))
+```
+
+
 
 ### Reports
 
