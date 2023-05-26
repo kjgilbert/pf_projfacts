@@ -101,12 +101,14 @@ monthly_billable_div <- dat |>
   mutate(month = month(BookedDate)) |> 
   group_by(ctu_division, year, month) |> 
   filter(billable == "Billable") |> 
+  filter(!str_detect(CaseId, "^I")) |> 
   summarize(Timespent_billable = sum(Timespent_billable)) |> #View()
   mutate(year_month = ym(paste0(year, "-", month)), 
          hours = Timespent_billable/60) |> 
   filter(year > 2020) 
 
-monthly_billable_ctu <- monthly_billable |> 
+monthly_billable_ctu <- monthly_billable_div |> 
+  filter(ctu_division != "CI") |> 
   group_by(year, month) |> 
   summarize(Timespent_billable = sum(Timespent_billable)) |> #View()
   mutate(year_month = ym(paste0(year, "-", month)), 
