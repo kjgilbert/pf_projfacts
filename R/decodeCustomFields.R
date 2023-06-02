@@ -17,7 +17,7 @@ decodeCustomFields <- function(project, customfields){
     dplyr::mutate(
       storekey = as.character(STOREKEY),
       storekey = stringr::str_replace(storekey, "\\.", "\\\\."),
-      regex = stringr::str_c("(?<=<", storekey, ">).+(?=</", storekey, ">)"),
+      regex = stringr::str_c("(?<=<", storekey, ">)(.|[[:space:]])+(?=</", storekey, ">)"),
       # regex = stringr::str_c("(?<=<", storekey, ">).{1,}(?=</", storekey, ">)"),
       name = janitor::make_clean_names(NAME),
       name = stringr::str_c("cf_", name)
@@ -32,10 +32,13 @@ decodeCustomFields <- function(project, customfields){
   if(nrow(tags) > 0){
     res <- purrr::map_dfc(1:nrow(tags), function(x){
       name <- tags$name[x]
+      regex <- tags$regex[x]
       project %>% dplyr::mutate(
-        {{name}} := stringr::str_extract(CUSTOMFIELDVALUES, tags$regex[x])
+        {{name}} := stringr::str_extract(CUSTOMFIELDVALUES, regex)
         ) %>% 
-          dplyr::select({{name}})
+          dplyr::select(
+            # CaseId, CUSTOMFIELDVALUES, 
+            {{name}}) #|> View()
       }) 
     
     out <- out %>% 

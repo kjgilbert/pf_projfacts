@@ -1,3 +1,7 @@
+# pf 0.1.6
+
+* fix regex in custom fields to account for line breaks
+
 # pf 0.1.5
 
 * projects_ctu_report improved, consultings_ctu_report & get_sponsor added (DG)
