@@ -45,6 +45,7 @@ decodeCustomFields <- function(project, customfields){
       out[, name] <- NA
       tag_in <- !is.na(cf) & stringi::stri_detect_regex(cf, storekey)
       out[tag_in, name] <- stringi::stri_extract_first_regex(out$CUSTOMFIELDVALUES[tag_in], regex)
+      
     }
     
     # out <- out %>% 
