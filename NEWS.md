@@ -1,3 +1,7 @@
+# pf 0.1.7
+
+* optimisation of decodeCustomFields
+
 # pf 0.1.6
 
 * fix regex in custom fields to account for line breaks
