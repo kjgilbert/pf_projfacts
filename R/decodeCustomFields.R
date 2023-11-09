@@ -22,7 +22,7 @@ decodeCustomFields <- function(project, customfields){
       name = janitor::make_clean_names(NAME),
       name = stringr::str_c("cf_", name)
     ) %>% 
-    dplyr::select(PK_CUSTOMFIELD, NAME, AKTIV, STOREKEY, AREA, regex, name) 
+    dplyr::select(PK_CUSTOMFIELD, NAME, AKTIV, STOREKEY, storekey, AREA, regex, name) 
     
   tags <- tags %>% 
     dplyr::filter(.data$STOREKEY %in% names(which(sapply(tags$STOREKEY, function(x) any(grepl(x, project$CUSTOMFIELDVALUES))))))
@@ -30,24 +30,39 @@ decodeCustomFields <- function(project, customfields){
   out <- project
   
   if(nrow(tags) > 0){
-    res <- purrr::map_dfc(1:nrow(tags), function(x){
+    # res <- lapply(1:nrow(tags), function(x){
+    #   name <- tags$name[x]
+    #   regex <- tags$regex[x]
+    #   z <- data.frame(z = stringr::str_extract(project$CUSTOMFIELDVALUES, regex))
+    #   names(z) <- name
+    #   z
+    #   }) 
+    cf <- project$CUSTOMFIELDVALUES
+    for(x in 1:nrow(tags)){
       name <- tags$name[x]
       regex <- tags$regex[x]
-      project %>% dplyr::mutate(
-        {{name}} := stringr::str_extract(CUSTOMFIELDVALUES, regex)
-        ) %>% 
-          dplyr::select(
-            # CaseId, CUSTOMFIELDVALUES, 
-            {{name}}) #|> View()
-      }) 
+      storekey <- tags$storekey[x]
+      out[, name] <- NA
+      tag_in <- !is.na(cf) & stringi::stri_detect_regex(cf, storekey)
+      out[tag_in, name] <- stringi::stri_extract_first_regex(out$CUSTOMFIELDVALUES[tag_in], regex)
+    }
     
-    out <- out %>% 
-      dplyr::bind_cols(res)
+    # out <- out %>% 
+    #   dplyr::bind_cols(res)
   }
   
   return(out)
   
 }
 
-
-
+# microbenchmark(
+#   decodeCustomFields(all_tabs$ticket, all_tabs$customfields),
+#   decodeCustomFields2(all_tabs$ticket, all_tabs$customfields),
+#   decodeCustomFields3(all_tabs$ticket, all_tabs$customfields),
+#   times = 10
+# )
+# 
+# microbenchmark(
+# all_tabs$project$CUSTOMFIELDVALUES |> stringi::stri_detect_regex(tags$regex[1]),
+# all_tabs$project$CUSTOMFIELDVALUES |> stringi::stri_extract_first_regex(tags$regex[1])
+# , times = 10)
