@@ -1,3 +1,7 @@
+# pf 0.1.8
+
+* optimisation of decodeCustomFields didn't work for the projects data. switch to regmatches/regexpr instead of stri::stri_extract_first_regex
+
 # pf 0.1.7
 
 * optimisation of decodeCustomFields
