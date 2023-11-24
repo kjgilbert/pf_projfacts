@@ -1,3 +1,7 @@
+# pf 0.1.9
+
+* adding projectrole & projectpermission to usefultabs
+
 # pf 0.1.8
 
 * optimisation of decodeCustomFields didn't work for the projects data. switch to regmatches/regexpr instead of stri::stri_extract_first_regex
