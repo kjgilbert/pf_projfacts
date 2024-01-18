@@ -4,7 +4,7 @@
 \alias{decodeCustomFields}
 \title{Add custom fields to projects data}
 \usage{
-decodeCustomFields(project, customfields)
+decodeCustomFields(project, customfields, trace = FALSE)
 }
 \arguments{
 \item{project}{e.g. \code{all_tabs$project}}

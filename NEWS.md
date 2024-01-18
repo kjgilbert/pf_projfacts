@@ -1,3 +1,7 @@
+# pf 0.1.10
+
+* fixing regex in decodeCustomfields
+
 # pf 0.1.9
 
 * adding projectrole & projectpermission to usefultabs

@@ -45,10 +45,11 @@ decodeCustomFields <- function(project, customfields, trace = FALSE){
       storekey <- tags$storekey[x]
       out[, name] <- NA
       tag_in <- which(!is.na(cf) & stringi::stri_detect_regex(cf, storekey))
+      cf[tag_in] <- str_replace_all(cf[tag_in],"\r\n","; ")
       tag_in2 <- tag_in[grepl(regex, cf[tag_in], perl = TRUE)]
       # out[tag_in, name] <- stringr::str_extract(out$CUSTOMFIELDVALUES[tag_in], regex)
-      out[tag_in2, name] <- regmatches(out$CUSTOMFIELDVALUES[tag_in], 
-                                      regexpr(regex, out$CUSTOMFIELDVALUES[tag_in], perl = TRUE))
+      out[tag_in2, name] <- regmatches(cf[tag_in2], 
+                                      regexpr(regex, cf[tag_in2], perl = TRUE))
       out[tag_in[!tag_in %in% tag_in2], name] <- "REGEX extraction failed"
       
     }
