@@ -13,10 +13,9 @@ constructParents(x, keyvar, stub)
 
 \item{stub}{Stub of variable name}
 }
+\value{
+data
+}
 \description{
 Construct a dataframe with the parents
-}
-\examples{
-constructParents(all_tabs$customer, "PK_CUSTOMER", "Customer")
-constructParents(all_tabs$project, "PK_Project", "Project") 
 }

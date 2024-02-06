@@ -4,12 +4,15 @@
 #' @param keyvar the primary key
 #' @param stub Stub of variable name
 #'
-#' @return
+#' @return data
 #'
-#' @examples
-#' constructParents(all_tabs$customer, "PK_CUSTOMER", "Customer")
-#' constructParents(all_tabs$project, "PK_Project", "Project") 
+#' @import dplyr stringr tidyr
+#' @importFrom data.table :=
+
+
 constructParents <- function(x, keyvar, stub){
+  
+  Parents <- Name <- n_parents <- max_parents <- NULL
   
   textvar_stub <- paste0(stub, "Name")
   key_stub <- paste0(stub, "Parent")
@@ -91,21 +94,23 @@ constructCustomerParents <- function(customer){
 #' 
 #' 
 #' # diagnostics
-#' table(projectParents$ProjectName2, projectParents$ctu_division, useNA = "ifany")
-#' x <- projectParents %>% 
-#'   dplyr::group_by(ctu_projectName, ProjectName1) %>% 
-#'   dplyr::summarize(n_divs = length(unique(ctu_division)))
+#' # table(projectParents$ProjectName2, projectParents$ctu_division, useNA = "ifany")
+#' # x <- projectParents %>% 
+#' #   dplyr::group_by(ctu_projectName, ProjectName1) %>% 
+#' #   dplyr::summarize(n_divs = length(unique(ctu_division)))
 #' 
 #' 
  constructProjectParents <- function(project){
   
+   top_ProjectName <- NULL
+   
   constructParents(project, "PK_Project", "Project") %>% 
     dplyr::rename(ctu_projectName = top_ProjectName) %>% 
     dplyr::mutate(ctu_division = dplyr::case_when(
       stringr::str_detect(ProjectName2, stringr::regex("Data Management|DataManagment|secuTrial|REDCap|Webspirit|Study Website|cloud|dm support|sharefile|sharepoint", ignore_case = TRUE)) ~ "DM",
       stringr::str_detect(ProjectName2, stringr::regex("Statistic|Programming grant", ignore_case = TRUE)) ~ "STA",
       stringr::str_detect(ProjectName2, stringr::regex("Clinical Investigation|Study Nurse", ignore_case = TRUE)) ~ "CI",
-      stringr::str_detect(ProjectName1, stringr::regex("Support Neuromuskuläres Zentrum|Hämatologie Support", ignore_case = TRUE)) & !is.na(ProjectName2) ~ "CI",
+      stringr::str_detect(ProjectName1, stringr::regex("Support Neuromuskul\u00E4res Zentrum|H\u00E4matologie Support", ignore_case = TRUE)) & !is.na(ProjectName2) ~ "CI",
       stringr::str_detect(ProjectName2, stringr::regex("Clinical Study Management|Project (Coord|manage)|Project(Coord|manage)", ignore_case = TRUE)) ~ "CSM",
       stringr::str_detect(ProjectName2, stringr::regex("monitoring|Document Development|Regulatory|Safety", ignore_case = TRUE)) ~ "MON",
       stringr::str_detect(ProjectName2, stringr::regex("Regulatory", ignore_case = TRUE)) ~ "RA",
@@ -137,8 +142,10 @@ constructCustomerParents <- function(customer){
 #'
 #' @examples
 #' all_tabs <- getPFData()
-#' projectParents <- constructProjectParents(all_tabs$financearticle)
+#' financeParents <- constructFinanceArticleParents(all_tabs$financearticle)
 constructFinanceArticleParents <- function(financearticle){
+  
+  PARENTS <- NAME <- NULL
   
   financearticle %>% 
     dplyr::rename(Parents = PARENTS,

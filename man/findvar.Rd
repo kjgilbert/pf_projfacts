@@ -11,6 +11,9 @@ findvar(all_tabs, x)
 
 \item{x}{variable name to look for (case is ignored)}
 }
+\value{
+data
+}
 \description{
 Find which dataframes contain a given variable
 }

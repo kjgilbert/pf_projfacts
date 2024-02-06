@@ -10,11 +10,17 @@ decodeCustomFields(project, customfields, trace = FALSE)
 \item{project}{e.g. \code{all_tabs$project}}
 
 \item{customfields}{e.g. \code{all_tabs$customfields}}
+
+\item{trace}{progress bar written to console, default = FALSE}
+}
+\value{
+data
 }
 \description{
 Add custom fields to projects data
 }
 \examples{
+all_tabs <- getPFData()
 project <- all_tabs$project
 customfields <- all_tabs$customfields
 project2 <- decodeCustomFields(project, customfields)

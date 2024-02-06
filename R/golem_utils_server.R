@@ -1,5 +1,6 @@
 #' Inverted versions of in, is.null and is.na
 #' 
+#' @import shiny
 #' @noRd
 #' 
 #' @examples

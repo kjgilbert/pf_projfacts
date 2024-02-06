@@ -1,3 +1,7 @@
+# pf 0.1.11
+
+* updating consultings_ctu_reports, get_sponsor, projects_ctu_reports, fixing errors in examples and dependencies, add license
+
 # pf 0.1.10
 
 * fixing regex in decodeCustomfields

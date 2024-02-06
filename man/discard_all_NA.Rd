@@ -9,11 +9,12 @@ discard_all_NA(.x)
 \arguments{
 \item{.x}{dataframe}
 }
+\value{
+data
+}
 \description{
 Discard dataframes without any data (all NA)
 }
 \examples{
-data.frame(a = 1, b = NA, c = 9) \%>\% 
-  discard_all_NA()
-
+x <- discard_all_NA(data.frame(a = 1, b = NA, c = 9))
 }

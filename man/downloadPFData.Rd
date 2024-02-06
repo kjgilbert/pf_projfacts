@@ -11,6 +11,11 @@ downloadPFData(
 }
 \arguments{
 \item{all}{logical - export all tables in the database (TRUE) or just the useful ones (FALSE)}
+
+\item{con}{ODBC connection}
+}
+\value{
+data
 }
 \description{
 Download data from projectfacts via ODBC

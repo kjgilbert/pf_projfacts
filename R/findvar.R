@@ -3,7 +3,7 @@
 #' @param all_tabs e.g. all_tabs <- getPFData()
 #' @param x variable name to look for (case is ignored)
 #'
-#' @return
+#' @return data
 #' @export
 #'
 #' @examples

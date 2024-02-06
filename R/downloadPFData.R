@@ -1,8 +1,11 @@
 #' Download data from projectfacts via ODBC
 #'
 #' @param all logical - export all tables in the database (TRUE) or just the useful ones (FALSE)
+#' @param con ODBC connection
 #'
-#' @return
+#' @return data
+#' 
+#' @import DBI odbc dplyr
 #'
 #' @examples
 #' # downloadPFData()
@@ -42,6 +45,8 @@ downloadPFData <- function(all = FALSE, con = DBI::dbConnect(odbc::odbc(), "pf",
                   "ticketworkerrelation", 
                   "workday", 
                   "worker")
+  
+  Name <- FK_MANDANT <- NULL
   
   if(all) usefultabs <- DBI::dbListTables(con, catalog_name = "projectfacts")
   

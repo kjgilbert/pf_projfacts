@@ -17,5 +17,5 @@ Finance article hierarchy
 }
 \examples{
 all_tabs <- getPFData()
-projectParents <- constructProjectParents(all_tabs$financearticle)
+financeParents <- constructFinanceArticleParents(all_tabs$financearticle)
 }

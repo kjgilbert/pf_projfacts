@@ -8,6 +8,8 @@ getPFData(file = "R:/Projectfacts/ODBC/pf_tabs.rds", ...)
 }
 \arguments{
 \item{file}{filename to load or \code{NULL}. If \code{NULL}, data is loaded via ODBC.}
+
+\item{...}{other parameters}
 }
 \value{
 List containing the following data frames

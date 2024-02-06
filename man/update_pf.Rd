@@ -9,9 +9,12 @@ update_pf(...)
 \arguments{
 \item{...}{additional arguments to \code{link[remotes]{install_local}}}
 }
+\value{
+data
+}
 \description{
 Update the installed version of the pf package
 }
 \examples{
-pf::update_pf()
+# pf::update_pf()
 }

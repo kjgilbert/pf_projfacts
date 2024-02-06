@@ -15,3 +15,7 @@ dataframe with total time planned for a project and the size of the project.
 \description{
 Small projects are < 200 hours, medium are 200 - 500 hours, large are > 500 hours
 }
+\examples{
+all_tabs <- getPFData()
+projectSize(all_tabs)
+}
