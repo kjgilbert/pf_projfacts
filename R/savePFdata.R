@@ -4,7 +4,7 @@
 #' @param dir directory in which to save the data
 #' @param dated logical - whether to include the date in the filename
 #'
-#' @return
+#' @return data
 #' @export
 #'
 #' @examples

@@ -1,11 +1,19 @@
-
-
-
-
-rc_api_token <- "D2F71E35ACDAA83025D9EEA0F16D8BDF"
+#' Get missing TDL entries
+#'
+#' @param all_tabs pf data
+#' @param rc_api_token API token to TDL on REDCap
+#'
+#' @return data
+#' @import httr2 dplyr purrr
+#' @importFrom utils read.csv View
+#' @export
+#'
+#' 
+#' 
 
 missing_tdl_entries <- function(all_tabs, rc_api_token){
-  library(tidyverse)
+  
+  Aktiv <- redcap_event_name <- field_name <- select_choices_or_calculations <- staffmember <- name <- record_id <- proj <- projnum <- FK_WORKER <- PK_Worker <- FK_CRMKONTAKT <- PK_CRMKONTAKT <- Vorname <- Nachname <- pf <- rc <- name.x <- NULL
   
   # REDCap data 
   req <- httr2::request("https://redcap.ctu.unibe.ch/api/") %>% 
@@ -17,7 +25,7 @@ missing_tdl_entries <- function(all_tabs, rc_api_token){
   
   req %>% httr2::req_dry_run()
   resp <- req %>% httr2::req_perform()
-  dat <- read.csv(textConnection(resp %>% httr2::resp_body_string()))
+  dat <- utils::read.csv(textConnection(resp %>% httr2::resp_body_string()))
   
   req <- httr2::request("https://redcap.ctu.unibe.ch/api/") %>% 
     httr2::req_headers() %>% 
@@ -93,5 +101,5 @@ missing_tdl_entries <- function(all_tabs, rc_api_token){
     
   missing %>% 
     dplyr::select(proj, name.x) %>% 
-    View()
+    utils::View()
 }

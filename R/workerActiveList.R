@@ -2,14 +2,21 @@
 #'
 #' @param all_tabs e.g. the result from \code{getPFData()}
 #'
-#' @return
+#' @return data
+#' @import dplyr
+#' @importFrom stringr str_detect
 #' @export
-#'
+#' 
 #' @examples
-#' getPFData() %>% 
-#' setEncoding() %>% 
-#' workerActiveList()
+#' all_tabs <- getPFData()
+#' x <- setEncoding(all_tabs) 
+#' y <- workerActiveList(x)
+#' 
+
 workerActiveList <- function(all_tabs){
+  
+  Vorname <- Nachname <- Path <- Path <- PK_CUSTOMER <- FK_CRMKONTAKT <- FK_CUSTOMER <- EMail <- workerAktiv <- NULL
+  
   dplyr::left_join(all_tabs$worker %>% 
                     dplyr::select(-c(Vorname, Nachname)), 
                   all_tabs$crmkontakt %>% 

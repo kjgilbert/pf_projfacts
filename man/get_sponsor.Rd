@@ -7,7 +7,7 @@
 get_sponsor(input_data)
 }
 \arguments{
-\item{input_data}{consultings/project data table with minimum variables top_CustomerName, CustomerName, CustomerName2, Organization, default_projectname}
+\item{input_data}{consultings/project data table with minimum variables CustomerName, CustomerName2, Organization, default_project}
 }
 \value{
 output_data
@@ -15,13 +15,10 @@ output_data
 \description{
 This code has been adapted for the purpose of producing the graphs for the QMR Yearly Report and CTU Annual Report.
 The code generates the variable SponsorOrganization (Insel, MedFac, UniBe Other, External Non/For Profit),
-SponsorInstitution (e.g., Department at Inselspital), and SponsorInst_short (abbreviated intitution-name to be used for plotting)
-Note: All institutes of the medical faculty have been hard-coded acccording to 
-https://www.medizin.unibe.ch/ueber_uns/fakultaet/index_ger.html (last check-date: 2023-01-27)
-All other institutes of UniBe are allocated to "UniBe other".
+SponsorInstitution (e.g., Department at Inselspital), and SponsorInst_short (abbreviated institution-name to be used for plotting)
 }
 \examples{
 all_tabs <-  getPFData()
 input_data <-  consultings_ctu_report(all_tabs)
-x <- get_sponsor(all_tabs)
+x <- get_sponsor(input_data)
 }

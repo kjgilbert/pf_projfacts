@@ -9,9 +9,13 @@ setEncoding(tabs)
 \arguments{
 \item{tabs}{e.g. all_tabs}
 }
+\value{
+data
+}
 \description{
 Set encoding of character variables to \code{latin-1}
 }
 \examples{
-all_tabs <- getPFData() \%>\% setEncoding()
+all_tabs <- getPFData() 
+x <- setEncoding(all_tabs)
 }

@@ -1,25 +1,32 @@
 Package: pf
 Title: ProjectFacts tools
-Version: 0.1.9
+Version: 0.1.11
 Authors@R: 
     c(
     person('Alan', 'Haynes', email = 'alan.haynes@ctu.unibe.ch', role = c('cre', 'aut')),
     person('Dominik', 'Güntensperger', email = 'dominik.guentensperger@ctu.unibe.ch', role = 'aut'))
-Description: Tools for working with ProjectFacts data and easy reporting of the data
-License: What license is it under?
+Description: Tools for working with ProjectFacts data and easy reporting of the data.
+License: MIT + file LICENSE
 Imports: 
     config (>= 0.3.1),
+    data.table,
     DBI,
     dplyr,
     golem (>= 0.3.1),
+    httr2,
     janitor,
+    lubridate,
     magrittr,
     odbc,
     purrr,
+    remotes,
+    rlang,
     shiny (>= 1.6.0),
     shinydashboard,
+    stringi,
     stringr,
-    waiter
+    tidyselect,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3

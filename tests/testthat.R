@@ -1,4 +1,4 @@
 library(testthat)
-library(pf_app)
+library(pf)
 
-test_check("pf_app")
+test_check("pf")

@@ -6,12 +6,16 @@
 #' @param all_tabs result from e.g. getPFData
 #'
 #' @return dataframe
+#' 
+#' @import dplyr lubridate
 #' @export
 #'
 #' @examples
 #' all_tabs <- getPFData()
 #' x <- prepTime(all_tabs)
 prepTime <- function(all_tabs){
+  
+  PK_ActivityCategory <- Name <- BookedDate <- PK_FINANCEPOSITION <- FK_PROJECT <- FK_FINANCEARTICLE <- UNITPRICE <- COUNT <- SUMNETTO <- PK_FINANCEARTICLE <- NUMBER <- FK_FINANCEPOSITION <- FK_MAINPROJECT <- PK_Project <- FK_CUSTOMER <- FK_PROJECTTYPE <- CaseId <- proj <- projnum <- PK_ProjectType <- NULL
   
   all_tabs$activitydata %>%
     pf::discard_all_NA() %>% 

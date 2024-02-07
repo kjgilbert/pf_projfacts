@@ -13,6 +13,9 @@ savePFdata(all_tabs, dir = "R:/Projectfacts/ODBC", dated = FALSE)
 
 \item{dated}{logical - whether to include the date in the filename}
 }
+\value{
+data
+}
 \description{
 save projectfacts data to R drive
 }

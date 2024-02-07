@@ -9,11 +9,15 @@ workerActiveList(all_tabs)
 \arguments{
 \item{all_tabs}{e.g. the result from \code{getPFData()}}
 }
+\value{
+data
+}
 \description{
 List of workers with their active status
 }
 \examples{
-getPFData() \%>\% 
-setEncoding() \%>\% 
-workerActiveList()
+all_tabs <- getPFData()
+x <- setEncoding(all_tabs) 
+y <- workerActiveList(x)
+
 }

@@ -2,16 +2,22 @@
 #'
 #' @param project e.g. \code{all_tabs$project}
 #' @param customfields e.g. \code{all_tabs$customfields}
+#' @param trace progress bar written to console, default = FALSE
 #'
-#' @return
+#' @return data
+#' @import dplyr stringr stringi
+#' @importFrom janitor make_clean_names
 #' @export
 #'
 #' @examples
+#' all_tabs <- getPFData()
 #' project <- all_tabs$project
 #' customfields <- all_tabs$customfields
 #' project2 <- decodeCustomFields(project, customfields)
 #' @importFrom magrittr %>%
 decodeCustomFields <- function(project, customfields, trace = FALSE){
+  
+  STOREKEY <- NAME <- PK_CUSTOMFIELD <- AKTIV <- AREA <- NULL
   
   tags <- customfields %>% 
     dplyr::mutate(
@@ -45,10 +51,11 @@ decodeCustomFields <- function(project, customfields, trace = FALSE){
       storekey <- tags$storekey[x]
       out[, name] <- NA
       tag_in <- which(!is.na(cf) & stringi::stri_detect_regex(cf, storekey))
+      cf[tag_in] <- stringr::str_replace_all(cf[tag_in],"\r\n","; ")
       tag_in2 <- tag_in[grepl(regex, cf[tag_in], perl = TRUE)]
       # out[tag_in, name] <- stringr::str_extract(out$CUSTOMFIELDVALUES[tag_in], regex)
-      out[tag_in2, name] <- regmatches(out$CUSTOMFIELDVALUES[tag_in], 
-                                      regexpr(regex, out$CUSTOMFIELDVALUES[tag_in], perl = TRUE))
+      out[tag_in2, name] <- regmatches(cf[tag_in2], 
+                                      regexpr(regex, cf[tag_in2], perl = TRUE))
       out[tag_in[!tag_in %in% tag_in2], name] <- "REGEX extraction failed"
       
     }

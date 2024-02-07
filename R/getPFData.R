@@ -1,6 +1,7 @@
 #' Load projectfacts data either from file or ODBC
 #'
 #' @param file filename to load or \code{NULL}. If \code{NULL}, data is loaded via ODBC.
+#' @param ... other parameters 
 #'
 #' @return
 #' List containing the following data frames

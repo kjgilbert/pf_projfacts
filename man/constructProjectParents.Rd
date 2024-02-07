@@ -21,10 +21,10 @@ projectParents <- constructProjectParents(all_tabs$project)
 
 
 # diagnostics
-table(projectParents$ProjectName2, projectParents$ctu_division, useNA = "ifany")
-x <- projectParents \%>\% 
-  dplyr::group_by(ctu_projectName, ProjectName1) \%>\% 
-  dplyr::summarize(n_divs = length(unique(ctu_division)))
+# table(projectParents$ProjectName2, projectParents$ctu_division, useNA = "ifany")
+# x <- projectParents \%>\% 
+#   dplyr::group_by(ctu_projectName, ProjectName1) \%>\% 
+#   dplyr::summarize(n_divs = length(unique(ctu_division)))
 
 
 }
