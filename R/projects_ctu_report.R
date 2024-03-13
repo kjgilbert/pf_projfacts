@@ -107,7 +107,8 @@ projects_ctu_report <- function(all_tabs){
     
     # join with total time bookings (see prepTime.R)
     dplyr::left_join(pf::prepTime(all_tabs)  |>   
-                       dplyr::mutate(BookedYear = lubridate::year(BookedDate)) |> 
+                       dplyr::mutate(BookedYear = lubridate::year(BookedDate),
+                                     ctu_division = if_else(is.na(ctu_division),"",ctu_division)) |> 
                        dplyr::group_by(top_project, ctu_division) |> 
                        dplyr::summarise(total_time = sum(Timespent, na.rm = TRUE))  |> 
                        dplyr::group_by(top_project) |>
@@ -131,16 +132,19 @@ projects_ctu_report <- function(all_tabs){
                   total_hrs = round(total_time/60,digits=2),
                   total_hrs_cat_500 = cut(total_hrs, 
                                           breaks = c(0,7.9999,20.49,40.49,60.49,100.49,500.49,Inf),
-                                          labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h")),
+                                          labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h"),
+                                          include.lowest = TRUE),
                   total_hrs_cat_100 = cut(total_hrs, 
                                           breaks = c(0,7.9999,20.49,40.49,60.49,100.49,Inf),
-                                          labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "> 100h")),
+                                          labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "> 100h"),
+                                          include.lowest = TRUE),
                   dplyr::across(c(total_hrs_cat_500,total_hrs_cat_100),as.factor)
     )  |> 
     
     # join with time bookings per year (see prepTime.R)
-    dplyr::left_join(pf::prepTime(all_tabs) |> 
-                       dplyr::mutate(BookedYear = lubridate::year(BookedDate)) |> 
+    dplyr::left_join(tmp <- pf::prepTime(all_tabs) |> 
+                       dplyr::mutate(BookedYear = lubridate::year(BookedDate),
+                                     ctu_division = if_else(is.na(ctu_division),"",ctu_division)) |> 
                        dplyr::select(top_project,BookedDate, BookedYear, Timespent, ctu_projectName, ctu_division, proj, projnum, projecttype )  |> 
                        
                        dplyr::group_by(top_project, ctu_division, BookedYear) |>
@@ -150,7 +154,7 @@ projects_ctu_report <- function(all_tabs){
                                         time_per_year = sum(time_per_year, na.rm = TRUE)),
                      by=c("PK_Project" = "top_project")) |> 
     
-    dplyr::select(-PK_Project)  |> 
+    dplyr::select(-PK_Project)   |> 
     
     # merge matching FTE and P projects:
     dplyr::group_by(projnum,BookedYear) |> 
@@ -158,19 +162,21 @@ projects_ctu_report <- function(all_tabs){
       # add up time per year
       time_per_year = sum(time_per_year),
       # merge divisions (only if they are unique)
-      new = paste(unique(unlist(strsplit(divisions_per_year, ","))), collapse = ",")
+      divisions_per_year = paste(unique(unlist(strsplit(divisions_per_year, ","))), collapse = ",")
     )  |> 
     dplyr::ungroup() |> 
   
   # categorize time bookings per year
-  dplyr::mutate(hrs_per_year = time_per_year/60,
-                time_per_year = dplyr::if_else(is.na(time_per_year),0,time_per_year),
+  dplyr::mutate(time_per_year = dplyr::if_else(is.na(time_per_year),0,time_per_year),
+                hrs_per_year = time_per_year/60,
                 hrs_per_year_cat_500 = cut(hrs_per_year, 
                                                breaks = c(0,7.9999,20.49,40.49,60.49,100.49,500.49,Inf),
-                                               labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h")),
+                                               labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "101-500h", "> 500h"),
+                                           include.lowest = TRUE),
                 hrs_per_year_cat_100 = cut(hrs_per_year, 
                                                breaks = c(0,7.9999,20.49,40.49,60.49,100.49,Inf),
-                                               labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "> 100h")),
+                                               labels = c("< 8h", "8-20h", "21-40h", "41-60h", "61-100h", "> 100h"),
+                                           include.lowest = TRUE),
                 dplyr::across(c(hrs_per_year_cat_500,hrs_per_year_cat_100),as.factor)
     )  |> 
     
