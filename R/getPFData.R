@@ -31,6 +31,7 @@
 #'   \item{projectstatedefinition}{list of possible project states}
 #'   \item{projecttype}{list of possible project types}
 #'   \item{ticket}{tickets (includes customfields)}
+#'   \item{ticketcategory}{list of ticket channels}
 #'   \item{ticketprocessitem}{ticket process items (e.g. notes)}
 #'   \item{ticketstatedefinition}{list of possible ticket states}
 #'   \item{ticketworkerrelation}{link between ticket and worker?}
