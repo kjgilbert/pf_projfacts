@@ -128,12 +128,12 @@ constructCustomerParents <- function(customer){
       
       # CSM
       dplyr::if_any(c(ProjectName:ProjectName2),
-                    ~ stringr::str_detect(.x, stringr::regex("Clinical Study Management|Project (Coord|manage)|Project(Coord|manage)", ignore_case = TRUE))
+                    ~ stringr::str_detect(.x, stringr::regex("Clinical Study Management|Project (Coord|manage)|Project(Coord|manage)|Document Development|Regulatory|Safety|", ignore_case = TRUE))
       ) ~ "CSM",
       
       # MON
       dplyr::if_any(c(ProjectName:ProjectName2),
-                    ~ stringr::str_detect(.x, stringr::regex("monitoring|Document Development|Regulatory|Safety|CDM", ignore_case = TRUE))
+                    ~ stringr::str_detect(.x, stringr::regex("monitoring|CDM", ignore_case = TRUE))
       ) ~ "MON",
       
       # QM
