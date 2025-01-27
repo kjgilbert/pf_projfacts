@@ -106,23 +106,53 @@ constructCustomerParents <- function(customer){
    
   constructParents(project, "PK_Project", "Project") %>% 
     dplyr::rename(ctu_projectName = top_ProjectName) %>% 
+    
     dplyr::mutate(ctu_division = dplyr::case_when(
-      stringr::str_detect(ProjectName2, stringr::regex("Data Management|DataManagment|secuTrial|REDCap|Webspirit|Study Website|cloud|dm support|sharefile|sharepoint", ignore_case = TRUE)) ~ "DM",
-      stringr::str_detect(ProjectName2, stringr::regex("Statistic|Programming grant", ignore_case = TRUE)) ~ "STA",
-      stringr::str_detect(ProjectName2, stringr::regex("Clinical Investigation|Study Nurse", ignore_case = TRUE)) ~ "CI",
-      stringr::str_detect(ProjectName1, stringr::regex("Support Neuromuskul\u00E4res Zentrum|H\u00E4matologie Support", ignore_case = TRUE)) & !is.na(ProjectName2) ~ "CI",
-      stringr::str_detect(ProjectName2, stringr::regex("Clinical Study Management|Project (Coord|manage)|Project(Coord|manage)", ignore_case = TRUE)) ~ "CSM",
-      stringr::str_detect(ProjectName2, stringr::regex("monitoring|Document Development|Regulatory|Safety", ignore_case = TRUE)) ~ "MON",
-      stringr::str_detect(ProjectName2, stringr::regex("Regulatory", ignore_case = TRUE)) ~ "RA",
-      stringr::str_detect(ProjectName2, stringr::regex("Quality Management|QM Support|Graphic Design/Layout|Auditing", ignore_case = TRUE)) ~ "QM",
-      stringr::str_detect(ProjectName2, stringr::regex("Material Expenses|IT support", ignore_case = TRUE)) ~ "IT",
-      # SwissTavi is different - no Divs in the project
-      stringr::str_detect(ProjectName1, stringr::regex("Swiss Tavi Registry", ignore_case = TRUE)) & stringr::str_detect(ProjectName, stringr::regex("monitoring", ignore_case = TRUE)) ~ "MON",
-      stringr::str_detect(ProjectName1, stringr::regex("Swiss Tavi Registry|Small Projects", ignore_case = TRUE)) & stringr::str_detect(ProjectName, stringr::regex("statistics", ignore_case = TRUE)) ~ "STA",
-      stringr::str_detect(ProjectName1, stringr::regex("Swiss Tavi Registry", ignore_case = TRUE)) & stringr::str_detect(ProjectName, stringr::regex("Project (Coord|manage)", ignore_case = TRUE)) ~ "CSM",
-      stringr::str_detect(ProjectName1, stringr::regex("Swiss Tavi Registry", ignore_case = TRUE)) & stringr::str_detect(ProjectName, stringr::regex("Data Management", ignore_case = TRUE)) ~ "DM",
-      stringr::str_detect(ProjectName1, stringr::regex("PreferenceSensitiveCare", ignore_case = TRUE))  ~ "STA",
-      # stringr::str_detect(ProjectName1, stringr::regex("PreferenceSensitiveCare", ignore_case = TRUE))  ~ "STA",
+      
+      # DM
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Data Management|DataManagment|secuTrial|REDCap|Webspirit|Study Website|cloud|dm support|sharefile|sharepoint|Reporting and Data Visualization|DM Reporting", ignore_case = TRUE))
+      ) ~ "DM",
+      
+      # STA
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Statistic|Programming grant", ignore_case = TRUE))
+      ) ~ "STA",
+      stringr::str_detect(ProjectName1, stringr::regex("PreferenceSensitiveCare|(Angiology|Neurozentrum|Intensive Care) Small Projects", ignore_case = TRUE))  ~ "STA",
+      
+      # CIU
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Clinical Investigation|Study Nurse", ignore_case = TRUE))
+      ) ~ "CI",
+      stringr::str_detect(ProjectName1, stringr::regex("Support Neuromuskuläres Zentrum|(?:Bonadies )?Hämatologie Support", ignore_case = TRUE)) ~ "CI",
+      
+      # CSM
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Clinical Study Management|Project (Coord|manage)|Project(Coord|manage)|Document Development|Regulatory|Safety", ignore_case = TRUE)) ~ "CSM",
+      
+      # MON
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("monitoring|CDM", ignore_case = TRUE))
+      ) ~ "MON",
+      
+      # QM
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Quality Management|QM Support|Graphic Design/Layout|Auditing|Qualitätsmanager", ignore_case = TRUE))
+      ) ~ "QM",
+      stringr::str_detect(ProjectName1, stringr::regex("DLF Bestandesaufnahe Q-Sicherung Inselkliniken", ignore_case = TRUE)) ~ "QM",
+      
+      # Other
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Material Expenses|IT support", ignore_case = TRUE))
+      ) ~ "IT",
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("Education", ignore_case = TRUE))
+      ) ~ "EDU",
+      dplyr::if_any(c(ProjectName:ProjectName2),
+                    ~ stringr::str_detect(.x, stringr::regex("PPI", ignore_case = TRUE))
+      ) ~ "PPI",
+       
+       
       
       ),
       CaseId = project$CaseId,

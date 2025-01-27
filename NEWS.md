@@ -1,3 +1,8 @@
+# pf 0.1.13
+
+* updating regex in constructProjectParents
+
+
 # pf 0.1.12
 
 * minor changes in projects_ctu_report.R
