@@ -1,3 +1,8 @@
+# pf 0.1.14
+
+* updating decodeCustomFields; was no longer functioning since the last ProjectFacts update - custom fields were no longer stored in the text string previously being decoded
+* now have also added decodeAllCustomFields
+
 # pf 0.1.13
 
 * updating regex in constructProjectParents

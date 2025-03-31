@@ -4,14 +4,20 @@
 \alias{decodeCustomFields}
 \title{Add custom fields to projects data}
 \usage{
-decodeCustomFields(project, customfields, trace = FALSE)
+decodeCustomFields(
+  dat,
+  dat_ID_col,
+  customfields,
+  customfieldvalue,
+  trace = FALSE
+)
 }
 \arguments{
-\item{project}{e.g. \code{all_tabs$project}}
-
 \item{customfields}{e.g. \code{all_tabs$customfields}}
 
 \item{trace}{progress bar written to console, default = FALSE}
+
+\item{project}{e.g. \code{all_tabs$project}}
 }
 \value{
 data
@@ -23,5 +29,6 @@ Add custom fields to projects data
 all_tabs <- getPFData()
 project <- all_tabs$project
 customfields <- all_tabs$customfields
+customfieldvalue <- all_tabs$customfieldvalue
 project2 <- decodeCustomFields(project, customfields)
 }
