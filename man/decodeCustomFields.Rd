@@ -13,11 +13,15 @@ decodeCustomFields(
 )
 }
 \arguments{
+\item{dat}{e.g. \code{all_tabs$project}}
+
+\item{dat_ID_col}{the column name containing the unique ID field for that table, e.g. \code{"PK_Project"}}
+
 \item{customfields}{e.g. \code{all_tabs$customfields}}
 
-\item{trace}{progress bar written to console, default = FALSE}
+\item{customfieldvalue}{e.g. \code{all_tabs$customfieldvalue}}
 
-\item{project}{e.g. \code{all_tabs$project}}
+\item{trace}{progress bar written to console, default = FALSE}
 }
 \value{
 data

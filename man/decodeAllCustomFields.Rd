@@ -9,7 +9,7 @@ the direct backend download from projectfacts}
 decodeAllCustomFields(list)
 }
 \arguments{
-\item{list}{}
+\item{list}{\code{all_tabs}}
 }
 \description{
 use the above decodeCustomFields function across all four instances of tables from pf

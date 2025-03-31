@@ -1,7 +1,9 @@
 #' Add custom fields to projects data
 #'
-#' @param project e.g. \code{all_tabs$project}
+#' @param dat e.g. \code{all_tabs$project}
+#' @param dat_ID_col the column name containing the unique ID field for that table, e.g. \code{"PK_Project"}
 #' @param customfields e.g. \code{all_tabs$customfields}
+#' @param customfieldvalue e.g. \code{all_tabs$customfieldvalue}
 #' @param trace progress bar written to console, default = FALSE
 #'
 #' @return data
@@ -35,7 +37,6 @@ decodeCustomFields <- function(dat, dat_ID_col, customfields, customfieldvalue, 
   # just take the ID number I need
   tags$storekey_trimmed <- sapply(strsplit(tags$STOREKEY, split = "\\."), function(x) x[2])
   
-  
   # merge with customfieldvalue
   new_cfs <- merge(x=customfieldvalue, y=tags, by.x="FK_CUSTOMFIELD", by.y="storekey_trimmed")
   
@@ -49,12 +50,10 @@ decodeCustomFields <- function(dat, dat_ID_col, customfields, customfieldvalue, 
   cf_singlecolumn_value <- apply(cf_values, 1, function(x){ na.omit(x) })
   new_cfs$cf_singlecolumn_value <- cf_singlecolumn_value
   
-  # and remove the columns we don't need anymore
-  new_cfs <- new_cfs |>
+  # take only the columns we need 
+  new_cfs <- new_cfs %>%
     select(FK_ITEM, name, cf_singlecolumn_value)
-  #    select(-c("FK_CUSTOMFIELD", "PK_CUSTOMFIELDVALUE", "NUMBERVALUE", "DATEVALUE", "TEXTVALUE", "IDENTITYVALUE", "BOOLEANVALUE"))
-  
-  
+
   # reshape the single columns into their own columns for each cf
   cfs_reshaped <- new_cfs %>%
     pivot_wider(
@@ -62,9 +61,7 @@ decodeCustomFields <- function(dat, dat_ID_col, customfields, customfieldvalue, 
       values_from = cf_singlecolumn_value
     )
   
-  
   # now merge with the dataframe of choice, e.g. tickets, projects, etc using FK_ITEM
-  #out <- merge(x=dat, y=cfs_reshaped, by.x=dat_ID_col, by.y ="FK_ITEM")
   out <- dat %>%
     left_join(cfs_reshaped, by = setNames("FK_ITEM", dat_ID_col))
   
@@ -77,7 +74,7 @@ decodeCustomFields <- function(dat, dat_ID_col, customfields, customfieldvalue, 
 #' use the above decodeCustomFields function across all four instances of tables from pf
 #' list = all_tabs
 #' the direct backend download from projectfacts
-#' @param list
+#' @param list  \code{all_tabs}
 #' 
 #' @export
 
@@ -89,6 +86,7 @@ decodeAllCustomFields <- function(list){
   list$project <- decodeCustomFields(dat=list$project, dat_ID_col="PK_Project", customfields=cfs, customfieldvalue=cfvs)
   list$ticket <- decodeCustomFields(dat=list$ticket, dat_ID_col="PK_TICKET", customfields=cfs, customfieldvalue=cfvs)
   list$worker <- decodeCustomFields(dat=list$worker, dat_ID_col="PK_Worker", customfields=cfs, customfieldvalue=cfvs)
+
   return(list)
 }
 
