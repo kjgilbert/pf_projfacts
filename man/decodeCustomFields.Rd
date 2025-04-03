@@ -2,9 +2,12 @@
 % Please edit documentation in R/decodeCustomFields.R
 \name{decodeCustomFields}
 \alias{decodeCustomFields}
+\alias{decodeAllCustomFields}
 \title{Add custom fields to projects data}
 \usage{
 decodeCustomFields(dat, customfields, customfieldvalue)
+
+decodeAllCustomFields(list)
 }
 \arguments{
 \item{dat}{e.g. \code{all_tabs$project}}
@@ -12,6 +15,8 @@ decodeCustomFields(dat, customfields, customfieldvalue)
 \item{customfields}{e.g. \code{all_tabs$customfields}}
 
 \item{customfieldvalue}{e.g. \code{all_tabs$customfieldvalue}}
+
+\item{list}{\code{all_tabs}}
 }
 \value{
 data
@@ -19,6 +24,14 @@ data
 \description{
 Add custom fields to projects data
 }
+\section{Functions}{
+\itemize{
+\item \code{decodeAllCustomFields()}: Wrapper around decodeCustomFields to extract custom fields for all four dataframes known to use them
+
+list = all_tabs
+the direct backend download from projectfacts
+
+}}
 \examples{
 all_tabs <- getPFData()
 dat <- all_tabs$project

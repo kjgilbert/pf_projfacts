@@ -110,7 +110,9 @@ decodeCustomFields <- function(dat, customfields, customfieldvalue){
 
 
 
-#' use the above decodeCustomFields function across all four instances of tables from pf
+#' @describeIn decodeCustomFields
+#' Wrapper around decodeCustomFields to extract custom fields for all four dataframes known to use them
+#' 
 #' list = all_tabs
 #' the direct backend download from projectfacts
 #' @param list  \code{all_tabs}
