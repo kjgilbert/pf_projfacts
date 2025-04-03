@@ -1,8 +1,8 @@
 # pf 0.2.0
 
-* updating decodeCustomFields; was no longer functioning since the last ProjectFacts update - custom fields were no longer stored in the text string previously being decoded
-* now have also added decodeAllCustomFields
-* this is a breaking change; now decodeCustomFields takes an additional parameter of'customfieldvalue'
+* this is a breaking change; now decodeCustomFields() takes an additional parameter of 'customfieldvalue'
+* decodeCustomFields was no longer functioning since the last ProjectFacts update - custom fields were no longer stored in the text string previously being decoded
+* now decodeCustomFields() has been updated and decodeAllCustomFields() has been introduced
 
 # pf 0.1.13
 
