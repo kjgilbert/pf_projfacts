@@ -12,7 +12,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE  # <-- globally disables code evaluation to not send all the emails
 )
 ```
 
@@ -612,11 +613,15 @@ if (nrow(cont_no_active_worker) > 0) { # I will correct this code for the locati
 
 ## Send Emails
 
-Then the information is concatenated per worked in the department so that they 
-receive an automatic email reminding them to fill in the missign data pertinent to 
+Then the information is concatenated per worker in the department so that they 
+receive an automatic email reminding them to fill in the missing data pertinent to 
 their tickets and projects.
 
-```{r warning=TRUE}
+Emails can only be sent from within the UniBe network; this excludes sending while on the VPN. 
+The pf data can also only be accessed from within the ISPM network.
+ 
+
+```{r warning=TRUE, eval=FALSE}
 
 library(sendmailR)
 
@@ -956,7 +961,7 @@ for (w in seq_along(workers$ShowName)) {
                            disposition="inline")
     )
     
-    sendmail(from = "kimberly.gilbert2@unibe.ch",
+    sendmail(from = #"kimberly.gilbert2@unibe.ch", # fill in the email address
              ##cc = "dominik.guentensperger@unibe.ch",
              to = email,
              subject = "Projectfacts Reminder",
